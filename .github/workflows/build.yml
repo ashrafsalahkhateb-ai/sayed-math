@@ -4,41 +4,29 @@ on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: kivy/buildozer:latest
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Create buildozer.spec
         run: |
-          cat << 'EOF' > buildozer.spec
-          [app]
-          title = سيد المحيطات رياضة أولى ثانوي
-          package.name = sayedmath
-          package.domain = org.sayed
-          source.dir = .
-          source.include_exts = py,png,jpg,kv,atlas
-          version = 1.0.0
-          requirements = python3,kivy,requests,urllib3,charset_normalizer,idna,certifi
-          orientation = portrait
-          fullscreen = 0
-          android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
-          android.api = 33
-          android.minapi = 21
-          android.ndk = 25b
-          android.accept_sdk_license = True
-          p4a.branch = master
-          [buildozer]
-          log_level = 2
-          warn_on_root = 1
-          EOF
+          buildozer init
+          sed -i 's/title = .*/title = سيد المحيطات رياضة أولى ثانوي/' buildozer.spec
+          sed -i 's/package.name = .*/package.name = sayedmath/' buildozer.spec
+          sed -i 's/package.domain = .*/package.domain = org.sayed/' buildozer.spec
+          sed -i 's/requirements = python3,kivy/requirements = python3,kivy,requests,urllib3,charset_normalizer,idna,certifi/' buildozer.spec
+          sed -i 's/#android.permissions = INTERNET/android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE/' buildozer.spec
+          sed -i 's/#android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
 
-      - name: Build with Buildozer Action
-        uses: ArtemSBulgakov/buildozer-action@v1
-        with:
-          workdir: .
-          buildozer_version: master
+      - name: Build with Buildozer
+        run: |
+          buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Sayed-Math-APK
           path: bin/*.apk
+          
